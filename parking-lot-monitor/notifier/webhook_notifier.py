@@ -1,6 +1,7 @@
 # notifier/webhook_notifier.py
 
 import requests
+import json
 from notifier.base import Notifier
 from config import WEBHOOK_URL
 
@@ -11,13 +12,33 @@ class WebhookNotifier(Notifier):
         self.url = WEBHOOK_URL
 
     def send(self, title, message, image_path=None):
-        data = {
-            "content": f"**{title}**\n{message}"
-        }
-
-        if image_path:
-            files = {"file": open(image_path, "rb")}
-            payload = {"payload_json": str(data)}
-            requests.post(self.url, data=payload, files=files)
-        else:
-            requests.post(self.url, json=data)
+        try:
+            if image_path:
+                # Send with image attachment
+                with open(image_path, "rb") as f:
+                    payload = {
+                        "content": f"**{title}**\n{message}"
+                    }
+                    files = {
+                        "file": (image_path.split("/")[-1], f, "image/jpeg")
+                    }
+                    response = requests.post(
+                        self.url,
+                        data={"payload_json": json.dumps(payload)},
+                        files=files
+                    )
+            else:
+                # Send text only
+                payload = {
+                    "content": f"**{title}**\n{message}"
+                }
+                response = requests.post(self.url, json=payload)
+            
+            # Check response
+            if response.status_code == 204 or response.status_code == 200:
+                print(f"✓ Discord notification sent successfully")
+            else:
+                print(f"✗ Discord error: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            print(f"✗ Failed to send Discord notification: {e}")

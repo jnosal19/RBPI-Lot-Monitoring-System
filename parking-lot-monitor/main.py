@@ -29,6 +29,8 @@ def main():
     notifier = WebhookNotifier()
 
     frame_count = 0
+    vehicle_present = False  # ⭐ PERSIST this variable between frames
+    detections = []  # ⭐ Store last detections for visualization
 
     print("Parking lot monitor running... Press Ctrl+C to stop.")
 
@@ -39,23 +41,20 @@ def main():
         # Only run YOLO every N frames
         should_run_yolo = (frame_count % YOLO_EVERY_N_FRAMES == 0)
 
-        vehicle_present = False
-        detections = []
-
         if should_run_yolo:
             detections = detector.detect(frame)
-
-            # NEW: Just check if ANY vehicle detected
+            # Update vehicle_present only when we actually run YOLO
             vehicle_present = len(detections) > 0
+            print(f"Frame {frame_count}: Vehicle present = {vehicle_present}")
 
-        # Draw boxes for visualization
+        # Draw boxes for visualization (using last known detections)
         for det in detections:
             (x1, y1, x2, y2) = det["box"]
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(frame, "vehicle", (x1, y1 - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-        # Update state machine
+        # Update state machine EVERY frame with the last known state
         event = state_machine.update(vehicle_present)
 
         # Trigger Discord Webhook
