@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Lot Monitor Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-monitoring {
+            background: #4ade80;
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .video-container {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .video-feed {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+        }
+
+        .events-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-increase {
+            border-left-color: #4ade80;
+        }
+
+        .event-decrease {
+            border-left-color: #f59e0b;
+        }
+
+        .event-type {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .event-time {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .mini-stat {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .mini-stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .mini-stat-label {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Parking Lot Monitor</h1>
+            <p class="subtitle">Real-time vehicle tracking and analytics</p>
+        </header>
+
+        <div class="grid">
+            <!-- Current Count Card -->
+            <div class="card">
+                <h2><span class="icon">🚙</span> Current Vehicles</h2>
+                <div class="stat-value" id="current-count">0</div>
+                <div class="stat-label">
+                    <span class="status-indicator" id="status-indicator"></span>
+                    <span id="status-text">Offline</span>
+                </div>
+            </div>
+
+            <!-- Peak Count Card -->
+            <div class="card">
+                <h2><span class="icon">📈</span> Peak Today</h2>
+                <div class="stat-value" id="peak-count">0</div>
+                <div class="stat-label">Maximum occupancy</div>
+            </div>
+
+            <!-- Total Events Card -->
+            <div class="card">
+                <h2><span class="icon">📊</span> Total Events</h2>
+                <div class="stat-value" id="total-events">0</div>
+                <div class="stat-label">Arrivals + Departures</div>
+            </div>
+        </div>
+
+        <!-- Live Video Feed -->
+        <div class="video-container">
+            <h2 style="margin-bottom: 15px;"><span class="icon">📹</span> Live Feed</h2>
+            <img src="/video_feed" alt="Live Feed" class="video-feed" id="video-feed">
+        </div>
+
+        <!-- Recent Events -->
+        <div class="card" style="margin-top: 20px;">
+            <h2><span class="icon">📋</span> Recent Activity</h2>
+            <div class="events-list" id="events-list">
+                <p style="text-align: center; color: #999; padding: 20px;">No events yet...</p>
+            </div>
+        </div>
+
+        <div class="last-update" id="last-update">
+            Last updated: Never
+        </div>
+    </div>
+
+    <script>
+        // Update dashboard every 1 second
+        function updateDashboard() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update current count
+                    document.getElementById('current-count').textContent = data.current_count;
+                    
+                    // Update status
+                    const statusIndicator = document.getElementById('status-indicator');
+                    const statusText = document.getElementById('status-text');
+                    
+                    if (data.status === 'monitoring') {
+                        statusIndicator.className = 'status-indicator status-monitoring';
+                        statusText.textContent = 'Monitoring';
+                    } else {
+                        statusIndicator.className = 'status-indicator status-offline';
+                        statusText.textContent = 'Offline';
+                    }
+                    
+                    // Update stats
+                    document.getElementById('peak-count').textContent = data.stats.peak_count;
+                    document.getElementById('total-events').textContent = data.stats.total_events;
+                    
+                    // Update events list
+                    const eventsList = document.getElementById('events-list');
+                    if (data.events && data.events.length > 0) {
+                        eventsList.innerHTML = data.events.map(event => {
+                            const time = new Date(event.timestamp).toLocaleTimeString();
+                            const typeClass = event.type === 'INCREASE' ? 'event-increase' : 'event-decrease';
+                            const icon = event.type === 'INCREASE' ? '📈' : '📉';
+                            const typeText = event.type === 'INCREASE' ? 'Vehicle Arrived' : 'Vehicle Departed';
+                            
+                            return `
+                                <div class="event-item ${typeClass}">
+                                    <div>
+                                        <span class="event-type">${icon} ${typeText}</span>
+                                        <div class="event-time">${time}</div>
+                                    </div>
+                                    <div class="stat-value" style="font-size: 1.5em; margin: 0;">
+                                        ${event.count}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        eventsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No events yet...</p>';
+                    }
+                    
+                    // Update last update time
+                    if (data.last_update) {
+                        const lastUpdate = new Date(data.last_update).toLocaleString();
+                        document.getElementById('last-update').textContent = `Last updated: ${lastUpdate}`;
+                    }
+                })
+                .catch(error => console.error('Error updating dashboard:', error));
+        }
+
+        // Update immediately and then every second
+        updateDashboard();
+        setInterval(updateDashboard, 1000);
+    </script>
+</body>
+</html>
