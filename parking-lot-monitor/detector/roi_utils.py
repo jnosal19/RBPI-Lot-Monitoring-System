@@ -1,6 +1,6 @@
 # detector/roi_utils.py
 
-def box_intersects_roi(box, roi, threshold=0.2):
+def box_intersects_roi(box, roi, threshold=0.01):
     """
     Returns True if the intersection area between the vehicle box and ROI
     exceeds a given threshold of the vehicle's box area.

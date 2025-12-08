@@ -11,16 +11,8 @@ CAMERA_INDEX = 0
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
-# Parking lot ROI (x, y, w, h)
-# Placeholder – fill these in later based on applicable camera view
-ROI = (0, 0, 640, 480)
-
 # Vehicle classes we care about (COCO dataset indices)
-VEHICLE_CLASSES = {2, 5, 7}  # car, bus, truck
-
-# Stability settings
-FRAMES_REQUIRED_INSIDE = 1
-FRAMES_REQUIRED_OUTSIDE = 1
+VEHICLE_CLASSES = {2, 3, 5, 7}  # car, bus, truck
 
 # Snapshot & log directories
 SNAPSHOT_DIR = "data/snapshots"

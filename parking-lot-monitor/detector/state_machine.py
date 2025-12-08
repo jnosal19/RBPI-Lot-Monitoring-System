@@ -1,32 +1,30 @@
 # detector/state_machine.py
 
-from config import FRAMES_REQUIRED_INSIDE, FRAMES_REQUIRED_OUTSIDE
-
 class PresenceStateMachine:
-    def __init__(self):
-        self.state = "ABSENT"
-        self.frames_in = 0
-        self.frames_out = 0
+    def __init__(self, frames_required=5):
+        self.frames_required = frames_required
+        self.present_count = 0
+        self.absent_count = 0
+        self.state = False  # False = no vehicle, True = vehicle present
 
     def update(self, vehicle_present):
-        """
-        Input: vehicle_present = True/False
-        Output: "ENTER", "EXIT", or None
-        """
+        event = None
 
         if vehicle_present:
-            self.frames_in += 1
-            self.frames_out = 0
+            self.present_count += 1
+            self.absent_count = 0
         else:
-            self.frames_out += 1
-            self.frames_in = 0
+            self.absent_count += 1
+            self.present_count = 0
 
-        if self.state == "ABSENT" and self.frames_in >= FRAMES_REQUIRED_INSIDE:
-            self.state = "PRESENT"
-            return "ENTER"
+        # Vehicle ENTERS lot
+        if not self.state and self.present_count >= self.frames_required:
+            self.state = True
+            event = "ENTER"
 
-        if self.state == "PRESENT" and self.frames_out >= FRAMES_REQUIRED_OUTSIDE:
-            self.state = "ABSENT"
-            return "EXIT"
+        # Vehicle EXITS lot
+        if self.state and self.absent_count >= self.frames_required:
+            self.state = False
+            event = "EXIT"
 
-        return None
+        return event

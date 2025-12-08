@@ -1,16 +1,6 @@
-# Ignore virtual environments
 venv/
-
-# Python bytecode
 __pycache__/
-*.pyc
-
-# Logs and temporary data
-data/logs/
-data/snapshots/
-
-# VS Code config
-.vscode/
-
-# macOS system files
-.DS_Store
+data/
+*.pt
+*.log
+*.jpg

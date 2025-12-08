@@ -10,9 +10,14 @@ class YOLODetector:
     def detect(self, frame):
         results = self.model(frame, verbose=False)[0]
 
+        # ⭐ DEBUG PRINT — shows ALL detected class IDs every frame
+        print("RAW YOLO DETECTIONS:", results.boxes.cls.tolist())
+
         detections = []
         for box in results.boxes:
             cls = int(box.cls)
+
+            # Filter out non-vehicle classes
             if cls not in VEHICLE_CLASSES:
                 continue
 
